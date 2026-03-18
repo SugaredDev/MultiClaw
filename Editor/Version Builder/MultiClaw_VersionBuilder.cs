@@ -203,25 +203,36 @@ public class VersionBuilder : EditorWindow
         string originalJson = JsonUtility.ToJson(inEditorVersion);
         bool[] platformStates = { buildWindows, buildMac, buildLinux, buildSteamDeck };
 
-        foreach (var version in buildVersions.Where(v => v.buildEnabled && v.configAsset != null))
+        try
         {
-            for (int i = 0; i < platforms.Length; i++)
+            foreach (var version in buildVersions.Where(v => v.buildEnabled && v.configAsset != null))
             {
-                if (!platformStates[i]) continue;
+                for (int i = 0; i < platforms.Length; i++)
+                {
+                    if (!platformStates[i]) continue;
 
-                version.configAsset.steamDeck = platforms[i].isSteamDeck;
-                EditorUtility.SetDirty(version.configAsset);
-                EditorUtility.CopySerialized(version.configAsset, inEditorVersion);
-                EditorUtility.SetDirty(inEditorVersion);
+                    version.configAsset.steamDeck = platforms[i].isSteamDeck;
+                    EditorUtility.SetDirty(version.configAsset);
+                    
+                    EditorUtility.CopySerialized(version.configAsset, inEditorVersion);
+                    EditorUtility.SetDirty(inEditorVersion);
+                    
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.Refresh();
 
-                BuildPlatform(version, platforms[i], buildsRoot, scenes);
+                    BuildPlatform(version, platforms[i], buildsRoot, scenes);
+                }
             }
         }
-
-        JsonUtility.FromJsonOverwrite(originalJson, inEditorVersion);
-        EditorUtility.SetDirty(inEditorVersion);
-        inEditorVersion.name = "Active Version";
-        AssetDatabase.SaveAssets();
+        finally
+        {
+            JsonUtility.FromJsonOverwrite(originalJson, inEditorVersion);
+            EditorUtility.SetDirty(inEditorVersion);
+            inEditorVersion.name = "Active Version";
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+        
         EditorUtility.RevealInFinder(buildsRoot);
         EditorUtility.DisplayDialog("Complete", "All builds finished!", "OK");
         
