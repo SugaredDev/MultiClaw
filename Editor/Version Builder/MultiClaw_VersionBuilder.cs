@@ -123,18 +123,23 @@ public class VersionBuilder : EditorWindow
         EditorGUILayout.BeginVertical("box");
         EditorGUILayout.BeginHorizontal();
 
-        bool isActive = version.configAsset == inEditorVersion;
         bool isActiveAsset = AssetDatabase.GetAssetPath(version.configAsset) == Constants.Path_Active;
+        bool isActive = isActiveAsset || (inEditorVersion != null && version.configAsset != null && 
+                                          version.configAsset.title == inEditorVersion.title &&
+                                          version.configAsset.fileName == inEditorVersion.fileName &&
+                                          version.configAsset.debug == inEditorVersion.debug &&
+                                          version.configAsset.steamAPI == inEditorVersion.steamAPI);
         
         GUI.backgroundColor = isActive ? Color.yellow : Color.white;
         GUI.enabled = !isActiveAsset && version.configAsset != null;
 
         if (GUILayout.Button(isActive ? "Active In-Editor" : "Set Active", GUILayout.Width(110)))
         {
-            string sourcePath = AssetDatabase.GetAssetPath(version.configAsset);
-            File.Copy(sourcePath, Constants.Path_Active, true);
-            AssetDatabase.Refresh();
-            inEditorVersion = AssetDatabase.LoadAssetAtPath<GameVersion>(Constants.Path_Active);
+            EditorUtility.CopySerialized(version.configAsset, inEditorVersion);
+            inEditorVersion.name = "Active Version";
+            EditorUtility.SetDirty(inEditorVersion);
+            AssetDatabase.SaveAssets();
+            Repaint();
         }
 
         GUI.enabled = true;
@@ -207,11 +212,10 @@ public class VersionBuilder : EditorWindow
         }
 
         string buildsRoot = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Builds");
-        string originalActiveVersionPath = AssetDatabase.GetAssetPath(inEditorVersion);
-        string backupPath = Constants.Path_Active + ".backup";
         bool[] platformStates = { buildWindows, buildMac, buildLinux, buildSteamDeck };
 
-        File.Copy(Constants.Path_Active, backupPath, true);
+        var backupVersion = CreateInstance<GameVersion>();
+        EditorUtility.CopySerialized(inEditorVersion, backupVersion);
 
         try
         {
@@ -221,15 +225,11 @@ public class VersionBuilder : EditorWindow
                 {
                     if (!platformStates[i]) continue;
 
-                    var tempVersion = CreateInstance<GameVersion>();
-                    EditorUtility.CopySerialized(version.configAsset, tempVersion);
-                    tempVersion.steamDeck = platforms[i].isSteamDeck;
-                    
-                    AssetDatabase.CreateAsset(tempVersion, Constants.Path_Active + ".temp");
+                    EditorUtility.CopySerialized(version.configAsset, inEditorVersion);
+                    inEditorVersion.steamDeck = platforms[i].isSteamDeck;
+                    inEditorVersion.name = "Active Version";
+                    EditorUtility.SetDirty(inEditorVersion);
                     AssetDatabase.SaveAssets();
-                    
-                    File.Copy(Constants.Path_Active + ".temp", Constants.Path_Active, true);
-                    AssetDatabase.DeleteAsset(Constants.Path_Active + ".temp");
                     AssetDatabase.Refresh();
 
                     BuildPlatform(version, platforms[i], buildsRoot, scenes);
@@ -238,13 +238,12 @@ public class VersionBuilder : EditorWindow
         }
         finally
         {
-            if (File.Exists(backupPath))
-            {
-                File.Copy(backupPath, Constants.Path_Active, true);
-                File.Delete(backupPath);
-                AssetDatabase.Refresh();
-                inEditorVersion = AssetDatabase.LoadAssetAtPath<GameVersion>(Constants.Path_Active);
-            }
+            EditorUtility.CopySerialized(backupVersion, inEditorVersion);
+            inEditorVersion.name = "Active Version";
+            EditorUtility.SetDirty(inEditorVersion);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            DestroyImmediate(backupVersion);
         }
         
         EditorUtility.RevealInFinder(buildsRoot);
