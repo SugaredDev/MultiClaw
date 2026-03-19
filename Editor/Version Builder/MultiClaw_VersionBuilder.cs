@@ -123,7 +123,7 @@ public class VersionBuilder : EditorWindow
         EditorGUILayout.BeginVertical("box");
         EditorGUILayout.BeginHorizontal();
 
-        bool isActive = inEditorVersion != null && JsonUtility.ToJson(version.configAsset) == JsonUtility.ToJson(inEditorVersion);
+        bool isActive = version.configAsset == inEditorVersion;
         bool isActiveAsset = AssetDatabase.GetAssetPath(version.configAsset) == Constants.Path_Active;
         
         GUI.backgroundColor = isActive ? Color.yellow : Color.white;
@@ -131,9 +131,10 @@ public class VersionBuilder : EditorWindow
 
         if (GUILayout.Button(isActive ? "Active In-Editor" : "Set Active", GUILayout.Width(110)))
         {
-            EditorUtility.CopySerialized(version.configAsset, inEditorVersion);
-            EditorUtility.SetDirty(inEditorVersion);
-            inEditorVersion.name = "Active Version";
+            string sourcePath = AssetDatabase.GetAssetPath(version.configAsset);
+            File.Copy(sourcePath, Constants.Path_Active, true);
+            AssetDatabase.Refresh();
+            inEditorVersion = AssetDatabase.LoadAssetAtPath<GameVersion>(Constants.Path_Active);
         }
 
         GUI.enabled = true;
@@ -206,8 +207,11 @@ public class VersionBuilder : EditorWindow
         }
 
         string buildsRoot = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Builds");
-        string originalJson = JsonUtility.ToJson(inEditorVersion);
+        string originalActiveVersionPath = AssetDatabase.GetAssetPath(inEditorVersion);
+        string backupPath = Constants.Path_Active + ".backup";
         bool[] platformStates = { buildWindows, buildMac, buildLinux, buildSteamDeck };
+
+        File.Copy(Constants.Path_Active, backupPath, true);
 
         try
         {
@@ -217,13 +221,15 @@ public class VersionBuilder : EditorWindow
                 {
                     if (!platformStates[i]) continue;
 
-                    version.configAsset.steamDeck = platforms[i].isSteamDeck;
-                    EditorUtility.SetDirty(version.configAsset);
+                    var tempVersion = CreateInstance<GameVersion>();
+                    EditorUtility.CopySerialized(version.configAsset, tempVersion);
+                    tempVersion.steamDeck = platforms[i].isSteamDeck;
                     
-                    EditorUtility.CopySerialized(version.configAsset, inEditorVersion);
-                    EditorUtility.SetDirty(inEditorVersion);
-                    
+                    AssetDatabase.CreateAsset(tempVersion, Constants.Path_Active + ".temp");
                     AssetDatabase.SaveAssets();
+                    
+                    File.Copy(Constants.Path_Active + ".temp", Constants.Path_Active, true);
+                    AssetDatabase.DeleteAsset(Constants.Path_Active + ".temp");
                     AssetDatabase.Refresh();
 
                     BuildPlatform(version, platforms[i], buildsRoot, scenes);
@@ -232,11 +238,13 @@ public class VersionBuilder : EditorWindow
         }
         finally
         {
-            JsonUtility.FromJsonOverwrite(originalJson, inEditorVersion);
-            EditorUtility.SetDirty(inEditorVersion);
-            inEditorVersion.name = "Active Version";
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
+            if (File.Exists(backupPath))
+            {
+                File.Copy(backupPath, Constants.Path_Active, true);
+                File.Delete(backupPath);
+                AssetDatabase.Refresh();
+                inEditorVersion = AssetDatabase.LoadAssetAtPath<GameVersion>(Constants.Path_Active);
+            }
         }
         
         EditorUtility.RevealInFinder(buildsRoot);
@@ -338,26 +346,6 @@ public class VersionBuilder : EditorWindow
     {
         if (inEditorVersion == null)
             inEditorVersion = Constants.EnsureActiveVersionExists();
-        
-        if (buildVersions.Count == 0) return;
-        
-        bool foundMatch = false;
-        foreach (var version in buildVersions)
-        {
-            if (version.configAsset != null && JsonUtility.ToJson(version.configAsset) == JsonUtility.ToJson(inEditorVersion))
-            {
-                foundMatch = true;
-                break;
-            }
-        }
-        
-        if (!foundMatch && buildVersions.Count > 0 && buildVersions[0].configAsset != null && inEditorVersion != null)
-        {
-            EditorUtility.CopySerialized(buildVersions[0].configAsset, inEditorVersion);
-            EditorUtility.SetDirty(inEditorVersion);
-            inEditorVersion.name = "Active Version";
-            AssetDatabase.SaveAssets();
-        }
     }
     
 }
