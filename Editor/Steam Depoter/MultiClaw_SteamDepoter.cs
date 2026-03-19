@@ -130,6 +130,13 @@ public class SteamDepoter : EditorWindow
         
         EditorGUILayout.BeginHorizontal();
         GUI.enabled = false;
+        EditorGUILayout.TextField("macOS", "Incompatible", GUILayout.Width(300));
+        EditorGUILayout.LabelField("—", GUILayout.Width(80));
+        GUI.enabled = true;
+        EditorGUILayout.EndHorizontal();
+        
+        EditorGUILayout.BeginHorizontal();
+        GUI.enabled = false;
         EditorGUILayout.TextField("Linux", GetDepotId(branchPresets?.depotLinux ?? DepotNumber.NotSet), GUILayout.Width(300));
         GUI.enabled = true;
         if (branchPresets != null)

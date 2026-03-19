@@ -19,6 +19,7 @@ public class SteamBranches : ScriptableObject
 {
 
     public DepotNumber depotWindows = DepotNumber.NotSet;
+    public DepotNumber depotMacOS = DepotNumber.NotSet;
     public DepotNumber depotLinux = DepotNumber.NotSet;
     public DepotNumber depotSteamDeck = DepotNumber.NotSet;
     public List<string> branches = new List<string>{};
