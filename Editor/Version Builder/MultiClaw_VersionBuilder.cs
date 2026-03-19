@@ -277,7 +277,7 @@ public class VersionBuilder : EditorWindow
 
         Debug.Log($"Build {(report.summary.result == BuildResult.Succeeded ? "Succeeded" : "Failed")}: {path}");
         
-        string burstDebugFolder = Path.Combine(folder, "Plugins_BurstDebugInformation_DoNotShip");
+        string burstDebugFolder = Path.Combine(folder, version.configAsset.fileName + "_BurstDebugInformation_DoNotShip");
         if (Directory.Exists(burstDebugFolder))
         {
             try
