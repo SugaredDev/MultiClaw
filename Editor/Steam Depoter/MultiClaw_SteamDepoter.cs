@@ -159,7 +159,7 @@ public class SteamDepoter : EditorWindow
         EditorGUILayout.LabelField("Requested branch", GUILayout.Width(120));
         config.steamBranch = EditorGUILayout.TextField(config.steamBranch, GUILayout.Width(180));
         
-        GUI.backgroundColor = Color.yellow;
+        GUI.backgroundColor = Color.green;
         GUI.enabled = !string.IsNullOrEmpty(config.steamBranch) && 
                       !config.steamBranch.Equals("default", System.StringComparison.OrdinalIgnoreCase) &&
                       (branchPresets == null || !branchPresets.branches.Contains(config.steamBranch));
