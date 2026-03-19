@@ -5,15 +5,15 @@ using System.IO;
 namespace MultiClaw
 {
 
-public class DebugAssistance : EditorWindow
+public class VersionNumeral : EditorWindow
 {
 
     Font chosenFont;
 
-    [MenuItem("Tools/MultiClaw/Debug Assistance")]
+    [MenuItem("Tools/MultiClaw/Version Numeral")]
     static void ShowWindow()
     {
-        GetWindow<DebugAssistance>("MultiClaw | Debug Assistance");
+        GetWindow<VersionNumeral>("MultiClaw | Version Numeral");
     }
 
     void OnEnable()
@@ -30,6 +30,32 @@ public class DebugAssistance : EditorWindow
 
         EditorGUILayout.BeginVertical("box");
         
+        EditorGUILayout.LabelField($"Current Version: {PlayerSettings.bundleVersion}", EditorStyles.boldLabel);
+        EditorGUILayout.Space();
+        
+        EditorGUILayout.BeginHorizontal();
+        
+        GUI.backgroundColor = Color.cyan;
+        if (GUILayout.Button("Major Update", GUILayout.Height(30)))
+            IncrementMajor();
+        
+        GUI.backgroundColor = Color.yellow;
+        if (GUILayout.Button("Minor Update", GUILayout.Height(30)))
+            IncrementMinor();
+        
+        GUI.backgroundColor = Color.white;
+        EditorGUILayout.EndHorizontal();
+        
+        EditorGUILayout.Space(5);
+        EditorGUILayout.LabelField("Major (0.X.0.000)", EditorStyles.miniLabel);
+        EditorGUILayout.LabelField("Minor (0.0.X.000)", EditorStyles.miniLabel);
+        
+        EditorGUILayout.EndVertical();
+        
+        EditorGUILayout.Space();
+
+        EditorGUILayout.BeginVertical("box");
+        
         EditorGUILayout.LabelField("Change Font for Version Indication:", EditorStyles.label);
         chosenFont = (Font)EditorGUILayout.ObjectField(chosenFont, typeof(Font), false);
         
@@ -39,9 +65,7 @@ public class DebugAssistance : EditorWindow
         GUI.backgroundColor = resourceFont != null ? Color.green : Color.red;
         
         if (GUILayout.Button("Update Indicator Font"))
-        {
             UpdateFont();
-        }
         GUI.backgroundColor = Color.white;
         GUI.enabled = true;
         
@@ -112,6 +136,54 @@ public class DebugAssistance : EditorWindow
         AssetDatabase.Refresh();
 
         EditorUtility.DisplayDialog("Success", "Indicator font updated successfully!", "OK");
+    }
+
+    void IncrementMajor()
+    {
+        string version = PlayerSettings.bundleVersion;
+        string[] parts = version.Split('.');
+
+        if (parts.Length != 4)
+        {
+            Debug.LogWarning("Build version is not in the correct format. Resetting to '0.1.0.000'.");
+            PlayerSettings.bundleVersion = "0.1.0.000";
+            return;
+        }
+
+        if (!int.TryParse(parts[1], out int major))
+            major = 0;
+
+        major++;
+
+        string newVersion = $"{parts[0]}.{major}.0.000";
+        PlayerSettings.bundleVersion = newVersion;
+
+        Debug.Log($"Project Version updated to {newVersion} (Major Update)");
+    }
+
+    void IncrementMinor()
+    {
+        string version = PlayerSettings.bundleVersion;
+        string[] parts = version.Split('.');
+
+        if (parts.Length != 4)
+        {
+            Debug.LogWarning("Build version is not in the correct format. Resetting to '0.0.1.000'.");
+            PlayerSettings.bundleVersion = "0.0.1.000";
+            return;
+        }
+
+        if (!int.TryParse(parts[1], out int major))
+            major = 0;
+        if (!int.TryParse(parts[2], out int minor))
+            minor = 0;
+
+        minor++;
+
+        string newVersion = $"{parts[0]}.{major}.{minor}.000";
+        PlayerSettings.bundleVersion = newVersion;
+
+        Debug.Log($"Project Version updated to {newVersion} (Minor Update)");
     }
 
 }

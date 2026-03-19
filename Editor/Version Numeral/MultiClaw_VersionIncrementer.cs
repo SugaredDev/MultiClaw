@@ -7,6 +7,7 @@ namespace MultiClaw
 [InitializeOnLoad]
 public class VersionIncrementer
 {
+    
     static VersionIncrementer()
     {
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
@@ -28,7 +29,7 @@ public class VersionIncrementer
 
         if (parts.Length != 4)
         {
-            Debug.LogWarning("Build version is not in the correct format. => Resetting to '0.0.0.000'.");
+            Debug.LogWarning("Build version is not in the correct format. => Correcting to '0.0.0.000'.");
             parts = new string[] { "0", "0", "0", "000" };
         }
 

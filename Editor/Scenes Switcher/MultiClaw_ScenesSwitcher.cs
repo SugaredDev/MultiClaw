@@ -4,6 +4,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 using System.IO;
 
+namespace MultiClaw
+{
+
 public class Scenes : EditorWindow
 {
 
@@ -58,5 +61,7 @@ public class Scenes : EditorWindow
 
         GUILayout.EndScrollView();
     }
+
+}
 
 }

@@ -33,7 +33,6 @@ public class VersionBuilder : EditorWindow
     Vector2 scroll;
     GameVersion inEditorVersion;
     bool buildWindows, buildMac, buildLinux, buildSteamDeck;
-    bool autoUploadToSteam = false;
 
     readonly PlatformInfo[] platforms = {
         new(false, BuildTarget.StandaloneWindows64, "Windows", ".exe"),
@@ -54,6 +53,12 @@ public class VersionBuilder : EditorWindow
 
     void OnGUI()
     {
+        GUI.backgroundColor = Color.gray;
+        if (GUILayout.Button(PlayerSettings.bundleVersion, new GUIStyle(GUI.skin.button) { alignment = TextAnchor.MiddleCenter, fontSize = 14, fontStyle = FontStyle.Bold }))
+            EditorWindow.GetWindow<VersionNumeral>("Version Numeral");
+        GUI.backgroundColor = Color.white;
+        GUILayout.Space(5);
+        
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField("Build Versions", EditorStyles.boldLabel);
         GUI.backgroundColor = Color.green;
@@ -76,28 +81,29 @@ public class VersionBuilder : EditorWindow
         buildMac = ColoredToggle("macOS", buildMac);
 
         GUILayout.Space(10);
-        autoUploadToSteam = ColoredToggle("Steam Upload", autoUploadToSteam);
-        
-        if (autoUploadToSteam)
-        {
-            if (GUILayout.Button("Open Steam Depoter"))
-                EditorWindow.GetWindow<SteamDepoter>("Steam Depoter");
-        }
-
-        GUILayout.Space(10);
         bool[] platformStates = { buildWindows, buildMac, buildLinux, buildSteamDeck };
         bool canBuild = platformStates.Any(p => p) && buildVersions.Any(v => v.buildEnabled);
         
-        string steamError = "";
-        if (autoUploadToSteam && !ValidateSteamConfig(out steamError))
+        List<string> missingSupport = new List<string>();
+        
+        if (buildWindows && !BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64))
+            missingSupport.Add("Windows");
+        
+        if (buildMac && !BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX))
+            missingSupport.Add("macOS");
+        
+        if ((buildLinux || buildSteamDeck) && !BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneLinux64))
+            missingSupport.Add(buildLinux && buildSteamDeck ? "Linux/Steam Deck" : buildLinux ? "Linux" : "Steam Deck");
+        
+        if (missingSupport.Count > 0)
         {
             canBuild = false;
-            EditorGUILayout.HelpBox($"Steam upload enabled but configuration incomplete: {steamError}", MessageType.Error);
+            EditorGUILayout.HelpBox($"Missing build support for: {string.Join(", ", missingSupport)}. Install the required modules in Unity Hub.", MessageType.Error);
         }
 
         GUI.enabled = canBuild;
         GUI.backgroundColor = canBuild ? Color.green : Color.red;
-        if (GUILayout.Button("Build Selected Versions")) BuildAll();
+        if (GUILayout.Button("Build Selected Versions", GUILayout.Height(40))) BuildAll();
         GUI.enabled = true;
         GUI.backgroundColor = Color.white;
     }
@@ -141,7 +147,7 @@ public class VersionBuilder : EditorWindow
         
         GUI.enabled = !isActiveAsset;
         GUI.backgroundColor = Color.red;
-        if (GUILayout.Button("Delete", GUILayout.Width(60)))
+        if (GUILayout.Button("X", GUILayout.Width(25)))
         {
             if (EditorUtility.DisplayDialog("Delete Version", $"Are you sure you want to delete '{version.configAsset.title}'?", "Delete", "Cancel"))
             {
@@ -234,56 +240,17 @@ public class VersionBuilder : EditorWindow
         }
         
         EditorUtility.RevealInFinder(buildsRoot);
-        EditorUtility.DisplayDialog("Complete", "All builds finished!", "OK");
         
-        if (autoUploadToSteam)
-            SteamDepoter.UploadAfterBuild();
-    }
-
-    bool ValidateSteamConfig(out string error)
-    {
-        error = "";
-        string json = EditorPrefs.GetString("MultiClaw_SteamConfig", "");
+        int choice = EditorUtility.DisplayDialogComplex(
+            "Builds Completed", 
+            "All builds finished successfully!", 
+            "Close", 
+            "Open Steam Depoter", 
+            "Close even harder"
+        );
         
-        if (string.IsNullOrEmpty(json))
-        {
-            error = "No Steam configuration found.";
-            return false;
-        }
-        
-        var config = JsonUtility.FromJson<SteamDepoter.SteamConfig>(json);
-        
-        if (string.IsNullOrEmpty(config.steamUsername))
-        {
-            error = "Steam username not set.";
-            return false;
-        }
-        
-        if (string.IsNullOrEmpty(config.steamPassword))
-        {
-            error = "Steam password not set.";
-            return false;
-        }
-        
-        if (string.IsNullOrEmpty(config.steamContentBuilderPath))
-        {
-            error = "ContentBuilder path not set.";
-            return false;
-        }
-        
-        if (!Directory.Exists(config.steamContentBuilderPath))
-        {
-            error = "ContentBuilder path does not exist.";
-            return false;
-        }
-        
-        if (string.IsNullOrEmpty(config.appId) || config.appId == "0000000")
-        {
-            error = "Steam App ID not configured.";
-            return false;
-        }
-        
-        return true;
+        if (choice == 1)
+            EditorWindow.GetWindow<SteamDepoter>("Steam Depoter");
     }
 
     void BuildPlatform(BuildConfig version, PlatformInfo platform, string root, string[] scenes)
@@ -301,6 +268,10 @@ public class VersionBuilder : EditorWindow
         });
 
         Debug.Log($"Build {(report.summary.result == BuildResult.Succeeded ? "Succeeded" : "Failed")}: {path}");
+        
+        string burstDebugFolder = Path.Combine(folder, "BurstDebugInformation_DoNotShip");
+        if (Directory.Exists(burstDebugFolder))
+            Directory.Delete(burstDebugFolder, true);
     }
 
     void RefreshVersionsList()

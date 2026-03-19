@@ -47,20 +47,16 @@ public class CommandConsole : MonoBehaviour
     {
         SetConsole();
         
-        // Subscribe to version loaded event or check immediately if already loaded
         VersionIndicator.OnVersionLoaded += OnVersionLoaded;
         
-        // If version already loaded before this Awake, check immediately
         if (VersionIndicator.version != null)
             OnVersionLoaded(VersionIndicator.version);
     }
     
     void OnVersionLoaded(GameVersion version)
     {
-        // Unsubscribe to avoid multiple calls
         VersionIndicator.OnVersionLoaded -= OnVersionLoaded;
         
-        // Check if version exists and if this is a debug build
         if (version == null || !Constants.IsDebugVersion(version))
         {
             Destroy(gameObject);

@@ -10,7 +10,7 @@ public class GameVersion : ScriptableObject
     public string title = "Project";
     public string fileName = "Application";
     public bool debug = true;
-    public uint steamAPI;
+    public uint steamAPI = 0;
     [HideInInspector] public bool steamDeck = false;
     [HideInInspector] public bool buildEnabled = true;
 

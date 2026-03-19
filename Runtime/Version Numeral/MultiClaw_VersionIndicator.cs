@@ -10,7 +10,7 @@ public class VersionIndicator : MonoBehaviour
     static bool showGUI = true;
     
     public static event System.Action<GameVersion> OnVersionLoaded;
-    static bool versionLoaded = false;
+    public static bool versionLoaded = false; // To check on runtime if the version is loaded, for custom stuff if you want.
 
     public static void ShowVersion() => showGUI = !showGUI;
     
