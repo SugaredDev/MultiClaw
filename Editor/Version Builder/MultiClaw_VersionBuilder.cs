@@ -231,6 +231,7 @@ public class VersionBuilder : EditorWindow
         finally
         {
             JsonUtility.FromJsonOverwrite(originalJson, inEditorVersion);
+            inEditorVersion.steamDeck = false;
             inEditorVersion.name = "Active Version";
             EditorUtility.SetDirty(inEditorVersion);
             AssetDatabase.SaveAssets();
