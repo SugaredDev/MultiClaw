@@ -43,12 +43,17 @@ public class VersionNumeral : EditorWindow
         if (GUILayout.Button("Minor Update", GUILayout.Height(30)))
             IncrementMinor();
         
+        GUI.backgroundColor = Color.green;
+        if (GUILayout.Button("Debug Update", GUILayout.Height(30)))
+            IncrementDebug();
+        
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndHorizontal();
         
         EditorGUILayout.Space(5);
         EditorGUILayout.LabelField("Major (0.X.0.000)", EditorStyles.miniLabel);
         EditorGUILayout.LabelField("Minor (0.0.X.000)", EditorStyles.miniLabel);
+        EditorGUILayout.LabelField("Debug (0.0.0.XXX)", EditorStyles.miniLabel);
         
         EditorGUILayout.EndVertical();
         
@@ -184,6 +189,33 @@ public class VersionNumeral : EditorWindow
         PlayerSettings.bundleVersion = newVersion;
 
         Debug.Log($"Project Version updated to {newVersion} (Minor Update)");
+    }
+
+    void IncrementDebug()
+    {
+        string version = PlayerSettings.bundleVersion;
+        string[] parts = version.Split('.');
+
+        if (parts.Length != 4)
+        {
+            Debug.LogWarning("Build version is not in the correct format. Resetting to '0.0.0.001'.");
+            PlayerSettings.bundleVersion = "0.0.0.001";
+            return;
+        }
+
+        if (!int.TryParse(parts[1], out int major))
+            major = 0;
+        if (!int.TryParse(parts[2], out int minor))
+            minor = 0;
+        if (!int.TryParse(parts[3], out int debug))
+            debug = 0;
+
+        debug++;
+
+        string newVersion = $"{parts[0]}.{major}.{minor}.{debug:D3}";
+        PlayerSettings.bundleVersion = newVersion;
+
+        Debug.Log($"Project Version updated to {newVersion} (Debug Update)");
     }
 
 }
