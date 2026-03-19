@@ -76,9 +76,9 @@ public class VersionBuilder : EditorWindow
 
         EditorGUILayout.LabelField("Platforms", EditorStyles.boldLabel);
         buildWindows = ColoredToggle("Windows", buildWindows);
+        buildMac = ColoredToggle("macOS", buildMac);
         buildLinux = ColoredToggle("Linux", buildLinux);
         buildSteamDeck = ColoredToggle("Steam Deck", buildSteamDeck);
-        buildMac = ColoredToggle("macOS", buildMac);
 
         GUILayout.Space(10);
         bool[] platformStates = { buildWindows, buildMac, buildLinux, buildSteamDeck };
