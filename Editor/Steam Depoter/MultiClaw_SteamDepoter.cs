@@ -177,6 +177,7 @@ public class SteamDepoter : EditorWindow
                 branchPresets.branches.Add(config.steamBranch);
                 EditorUtility.SetDirty(branchPresets);
                 AssetDatabase.SaveAssets();
+                Repaint();
             }
         }
         GUI.enabled = true;
@@ -213,6 +214,7 @@ public class SteamDepoter : EditorWindow
                 branchPresets.branches.RemoveAt(presetToRemove);
                 EditorUtility.SetDirty(branchPresets);
                 AssetDatabase.SaveAssets();
+                Repaint();
             }
         }
         

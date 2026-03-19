@@ -272,14 +272,23 @@ public class VersionBuilder : EditorWindow
             scenes = scenes,
             locationPathName = path,
             target = platform.target,
-            options = BuildOptions.None
+            options = BuildOptions.CleanBuildCache
         });
 
         Debug.Log($"Build {(report.summary.result == BuildResult.Succeeded ? "Succeeded" : "Failed")}: {path}");
         
-        string burstDebugFolder = Path.Combine(folder, "BurstDebugInformation_DoNotShip");
+        string burstDebugFolder = Path.Combine(folder, "Plugins_BurstDebugInformation_DoNotShip");
         if (Directory.Exists(burstDebugFolder))
-            Directory.Delete(burstDebugFolder, true);
+        {
+            try
+            {
+                Directory.Delete(burstDebugFolder, true);
+            }
+            catch
+            {
+
+            }
+        }
     }
 
     void RefreshVersionsList()
