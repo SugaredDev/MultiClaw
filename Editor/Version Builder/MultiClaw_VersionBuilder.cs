@@ -217,14 +217,12 @@ public class VersionBuilder : EditorWindow
                 {
                     if (!platformStates[i]) continue;
 
-                    version.configAsset.steamDeck = platforms[i].isSteamDeck;
-                    EditorUtility.SetDirty(version.configAsset);
-                    
                     EditorUtility.CopySerialized(version.configAsset, inEditorVersion);
+                    inEditorVersion.steamDeck = platforms[i].isSteamDeck;
+                    inEditorVersion.name = "Active Version";
                     EditorUtility.SetDirty(inEditorVersion);
                     
                     AssetDatabase.SaveAssets();
-                    AssetDatabase.Refresh();
 
                     BuildPlatform(version, platforms[i], buildsRoot, scenes);
                 }
@@ -233,10 +231,9 @@ public class VersionBuilder : EditorWindow
         finally
         {
             JsonUtility.FromJsonOverwrite(originalJson, inEditorVersion);
-            EditorUtility.SetDirty(inEditorVersion);
             inEditorVersion.name = "Active Version";
+            EditorUtility.SetDirty(inEditorVersion);
             AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
         }
         
         EditorUtility.RevealInFinder(buildsRoot);
