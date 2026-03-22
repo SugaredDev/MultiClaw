@@ -10,7 +10,7 @@ public class VersionNumeral : EditorWindow
 
     Font chosenFont;
 
-    [MenuItem("Tools/MultiClaw/Version Numeral")]
+    [MenuItem("Tools/MultiClaw/Version Numeral", false, 12)]
     static void ShowWindow()
     {
         GetWindow<VersionNumeral>("MultiClaw | Version Numeral");

@@ -14,15 +14,18 @@ public enum DepotNumber
 
 }
 
-[CreateAssetMenu(fileName = "Steam Branches", menuName = "Builds/Steam Branches")]
-public class SteamBranches : ScriptableObject
+public class Rememberer : ScriptableObject
 {
 
-    public DepotNumber depotWindows = DepotNumber.NotSet;
-    public DepotNumber depotMacOS = DepotNumber.NotSet;
-    public DepotNumber depotLinux = DepotNumber.NotSet;
-    public DepotNumber depotSteamDeck = DepotNumber.NotSet;
-    public List<string> branches = new List<string>{};
+    [HideInInspector] public DepotNumber depotWindows = DepotNumber.NotSet;
+    [HideInInspector] public DepotNumber depotMacOS = DepotNumber.NotSet;
+    [HideInInspector] public DepotNumber depotLinux = DepotNumber.NotSet;
+    [HideInInspector] public DepotNumber depotSteamDeck = DepotNumber.NotSet;
+    [HideInInspector] public bool enableWindows = true;
+    [HideInInspector] public bool enableMacOS = true;
+    [HideInInspector] public bool enableLinux = true;
+    [HideInInspector] public bool enableSteamDeck = true;
+    [HideInInspector] public List<string> branches = new List<string>{};
 
 }
 

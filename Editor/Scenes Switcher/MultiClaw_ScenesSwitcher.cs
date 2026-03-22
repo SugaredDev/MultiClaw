@@ -10,7 +10,7 @@ namespace MultiClaw
 public class Scenes : EditorWindow
 {
 
-    [MenuItem("Tools/MultiClaw/Scenes Switcher")]
+    [MenuItem("Tools/MultiClaw/Scenes Switcher", false, 23)]
     public static void ShowWindow()
     {
         GetWindow<Scenes>("MultiClaw | Scenes Switcher");

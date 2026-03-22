@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
+using System.Linq;
 
 namespace MultiClaw
 {
@@ -15,10 +16,11 @@ public class SteamDepoter : EditorWindow
     {
         public string steamContentBuilderPath = "";
         public string steamBranch = "development";
+        public string customDescription = "";
     }
 
     static SteamConfig config;
-    static SteamBranches branchPresets;
+    static Rememberer branchPresets;
     static string steamUsername = "";
     static string steamPassword = "";
     Vector2 scrollPos;
@@ -27,7 +29,7 @@ public class SteamDepoter : EditorWindow
 
     // ==============================================================================
 
-    [MenuItem("Tools/MultiClaw/Steam Depoter")]
+    [MenuItem("Tools/MultiClaw/Steam Depoter", false, 1)]
     static void ShowWindow() => GetWindow<SteamDepoter>("Steam Depoter");
 
     static string GetCurrentAppId()
@@ -100,8 +102,27 @@ public class SteamDepoter : EditorWindow
             Application.OpenURL("https://partner.steamgames.com/doc/sdk/uploading#1");
         
         if (!string.IsNullOrEmpty(config.steamContentBuilderPath) && !Directory.Exists(config.steamContentBuilderPath))
-            EditorGUILayout.HelpBox("Path does not exist!", MessageType.Error);
+            EditorGUILayout.HelpBox("Path does not exist.", MessageType.Error);
         
+        EditorGUILayout.Space(5);
+        
+        EditorGUILayout.LabelField("Description", EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal();
+        GUI.enabled = false;
+        EditorGUILayout.TextField(PlayerSettings.bundleVersion, GUILayout.Width(150));
+        GUI.enabled = true;
+        
+        EditorGUI.BeginChangeCheck();
+        config.customDescription = EditorGUILayout.TextField(config.customDescription, GUILayout.ExpandWidth(true));
+        if (EditorGUI.EndChangeCheck())
+            SaveConfig();
+        
+        EditorGUILayout.EndHorizontal();
+        
+        string fullDescription = string.IsNullOrEmpty(config.customDescription) 
+            ? PlayerSettings.bundleVersion 
+            : $"{PlayerSettings.bundleVersion} {config.customDescription}";
+
         EditorGUILayout.Space(5);
 
         EditorGUILayout.LabelField("Depots", EditorStyles.boldLabel);
@@ -126,13 +147,29 @@ public class SteamDepoter : EditorWindow
         GUI.enabled = true;
         if (branchPresets != null)
             branchPresets.depotWindows = (DepotNumber)EditorGUILayout.EnumPopup(branchPresets.depotWindows, GUILayout.Width(80));
-        EditorGUILayout.EndHorizontal();
         
-        EditorGUILayout.BeginHorizontal();
-        GUI.enabled = false;
-        EditorGUILayout.TextField("macOS", "Incompatible", GUILayout.Width(300));
-        EditorGUILayout.LabelField("—", GUILayout.Width(80));
-        GUI.enabled = true;
+        if (branchPresets != null)
+        {
+            bool isNotSet = branchPresets.depotWindows == DepotNumber.NotSet;
+            if (isNotSet && branchPresets.enableWindows)
+            {
+                branchPresets.enableWindows = false;
+                EditorUtility.SetDirty(branchPresets);
+                AssetDatabase.SaveAssets();
+            }
+            
+            GUI.enabled = !isNotSet;
+            GUI.backgroundColor = branchPresets.enableWindows ? Color.green : Color.red;
+            if (GUILayout.Button("O", GUILayout.Width(25)))
+            {
+                branchPresets.enableWindows = !branchPresets.enableWindows;
+                EditorUtility.SetDirty(branchPresets);
+                AssetDatabase.SaveAssets();
+            }
+            GUI.backgroundColor = Color.white;
+            GUI.enabled = true;
+        }
+        
         EditorGUILayout.EndHorizontal();
         
         EditorGUILayout.BeginHorizontal();
@@ -141,6 +178,29 @@ public class SteamDepoter : EditorWindow
         GUI.enabled = true;
         if (branchPresets != null)
             branchPresets.depotLinux = (DepotNumber)EditorGUILayout.EnumPopup(branchPresets.depotLinux, GUILayout.Width(80));
+        
+        if (branchPresets != null)
+        {
+            bool isNotSet = branchPresets.depotLinux == DepotNumber.NotSet;
+            if (isNotSet && branchPresets.enableLinux)
+            {
+                branchPresets.enableLinux = false;
+                EditorUtility.SetDirty(branchPresets);
+                AssetDatabase.SaveAssets();
+            }
+            
+            GUI.enabled = !isNotSet;
+            GUI.backgroundColor = branchPresets.enableLinux ? Color.green : Color.red;
+            if (GUILayout.Button("O", GUILayout.Width(25)))
+            {
+                branchPresets.enableLinux = !branchPresets.enableLinux;
+                EditorUtility.SetDirty(branchPresets);
+                AssetDatabase.SaveAssets();
+            }
+            GUI.backgroundColor = Color.white;
+            GUI.enabled = true;
+        }
+        
         EditorGUILayout.EndHorizontal();
         
         EditorGUILayout.BeginHorizontal();
@@ -149,6 +209,60 @@ public class SteamDepoter : EditorWindow
         GUI.enabled = true;
         if (branchPresets != null)
             branchPresets.depotSteamDeck = (DepotNumber)EditorGUILayout.EnumPopup(branchPresets.depotSteamDeck, GUILayout.Width(80));
+        
+        if (branchPresets != null)
+        {
+            bool isNotSet = branchPresets.depotSteamDeck == DepotNumber.NotSet;
+            if (isNotSet && branchPresets.enableSteamDeck)
+            {
+                branchPresets.enableSteamDeck = false;
+                EditorUtility.SetDirty(branchPresets);
+                AssetDatabase.SaveAssets();
+            }
+            
+            GUI.enabled = !isNotSet;
+            GUI.backgroundColor = branchPresets.enableSteamDeck ? Color.green : Color.red;
+            if (GUILayout.Button("O", GUILayout.Width(25)))
+            {
+                branchPresets.enableSteamDeck = !branchPresets.enableSteamDeck;
+                EditorUtility.SetDirty(branchPresets);
+                AssetDatabase.SaveAssets();
+            }
+            GUI.backgroundColor = Color.white;
+            GUI.enabled = true;
+        }
+        
+        EditorGUILayout.EndHorizontal();
+        
+        EditorGUILayout.BeginHorizontal();
+        GUI.enabled = false;
+        EditorGUILayout.TextField("macOS", GetDepotId(branchPresets?.depotMacOS ?? DepotNumber.NotSet), GUILayout.Width(300));
+        GUI.enabled = true;
+        if (branchPresets != null)
+            branchPresets.depotMacOS = (DepotNumber)EditorGUILayout.EnumPopup(branchPresets.depotMacOS, GUILayout.Width(80));
+        
+        if (branchPresets != null)
+        {
+            bool isNotSet = branchPresets.depotMacOS == DepotNumber.NotSet;
+            if (isNotSet && branchPresets.enableMacOS)
+            {
+                branchPresets.enableMacOS = false;
+                EditorUtility.SetDirty(branchPresets);
+                AssetDatabase.SaveAssets();
+            }
+            
+            GUI.enabled = !isNotSet;
+            GUI.backgroundColor = branchPresets.enableMacOS ? Color.green : Color.red;
+            if (GUILayout.Button("O", GUILayout.Width(25)))
+            {
+                branchPresets.enableMacOS = !branchPresets.enableMacOS;
+                EditorUtility.SetDirty(branchPresets);
+                AssetDatabase.SaveAssets();
+            }
+            GUI.backgroundColor = Color.white;
+            GUI.enabled = true;
+        }
+        
         EditorGUILayout.EndHorizontal();
         
         if (EditorGUI.EndChangeCheck() && branchPresets != null)
@@ -235,7 +349,20 @@ public class SteamDepoter : EditorWindow
 
         bool hasAtLeastOneDepot = (branchPresets?.depotWindows ?? DepotNumber.NotSet) != DepotNumber.NotSet ||
                                    (branchPresets?.depotLinux ?? DepotNumber.NotSet) != DepotNumber.NotSet ||
-                                   (branchPresets?.depotSteamDeck ?? DepotNumber.NotSet) != DepotNumber.NotSet;
+                                   (branchPresets?.depotSteamDeck ?? DepotNumber.NotSet) != DepotNumber.NotSet ||
+                                   (branchPresets?.depotMacOS ?? DepotNumber.NotSet) != DepotNumber.NotSet;
+
+        List<DepotNumber> activeDepots = new List<DepotNumber>();
+        if ((branchPresets?.depotWindows ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+            activeDepots.Add(branchPresets.depotWindows);
+        if ((branchPresets?.depotLinux ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+            activeDepots.Add(branchPresets.depotLinux);
+        if ((branchPresets?.depotSteamDeck ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+            activeDepots.Add(branchPresets.depotSteamDeck);
+        if ((branchPresets?.depotMacOS ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+            activeDepots.Add(branchPresets.depotMacOS);
+        
+        bool hasDuplicateDepots = activeDepots.Count != activeDepots.Distinct().Count();
 
         bool isDefaultBranch = config.steamBranch.Equals("default", System.StringComparison.OrdinalIgnoreCase);
 
@@ -245,12 +372,13 @@ public class SteamDepoter : EditorWindow
                          Directory.Exists(config.steamContentBuilderPath) &&
                          Directory.Exists(GetBuildsPath()) &&
                          hasAtLeastOneDepot &&
+                         !hasDuplicateDepots &&
                          !isDefaultBranch;
 
         GUI.enabled = canUpload;
         GUI.backgroundColor = canUpload ? Color.green : Color.gray;
         
-        if (GUILayout.Button("Upload to Steam", GUILayout.Height(40)))
+        if (GUILayout.Button("Upload To Steam", GUILayout.Height(40)))
             if (EditorUtility.DisplayDialog("Upload", $"Upload to '{config.steamBranch}'?", "Yes", "No"))
                 UploadToSteam();
         
@@ -263,20 +391,26 @@ public class SteamDepoter : EditorWindow
             EditorGUILayout.HelpBox($"App ID must end with 0. Update Steam API in Version Builder.", MessageType.Error);
         
         if (string.IsNullOrEmpty(config.steamContentBuilderPath))
-            EditorGUILayout.HelpBox("ContentBuilder path not set", MessageType.Warning);
+            EditorGUILayout.HelpBox("ContentBuilder path not set.", MessageType.Warning);
         else if (!Directory.Exists(config.steamContentBuilderPath))
-            EditorGUILayout.HelpBox("ContentBuilder path does not exist!", MessageType.Error);
+            EditorGUILayout.HelpBox("ContentBuilder path does not exist.", MessageType.Error);
         
         if (!Directory.Exists(GetBuildsPath()))
-            EditorGUILayout.HelpBox("No builds found", MessageType.Warning);
+            EditorGUILayout.HelpBox("No builds found.", MessageType.Warning);
         
         if (!hasAtLeastOneDepot)
             EditorGUILayout.HelpBox("At least one depot must be set.", MessageType.Warning);
+        
+        if (hasDuplicateDepots)
+            EditorGUILayout.HelpBox("Depot ID's must be unique. Each platform must have a different depot number.", MessageType.Error);
         
         if (isDefaultBranch)
             EditorGUILayout.HelpBox("Cannot name a branch like that.", MessageType.Error);
         else if (string.IsNullOrEmpty(config.steamBranch))
             EditorGUILayout.HelpBox("Depot won't auto go publicly live on the default branch.", MessageType.Info);
+        
+        if ((branchPresets?.depotMacOS ?? DepotNumber.NotSet) != DepotNumber.NotSet && (branchPresets?.enableMacOS ?? false))
+            EditorGUILayout.HelpBox("This tool DOES NOT provide Apple Distribution Certificate. You must manually certify your macOS build before depoting.", MessageType.Info);
 
         EditorGUILayout.EndScrollView();
     }
@@ -367,31 +501,35 @@ public class SteamDepoter : EditorWindow
         string windowsDepot = GetDepotId(branchPresets?.depotWindows ?? DepotNumber.NotSet);
         string linuxDepot = GetDepotId(branchPresets?.depotLinux ?? DepotNumber.NotSet);
         string steamDeckDepot = GetDepotId(branchPresets?.depotSteamDeck ?? DepotNumber.NotSet);
+        string macOSDepot = GetDepotId(branchPresets?.depotMacOS ?? DepotNumber.NotSet);
 
         string windowsPath = Path.Combine(versionPath, "Windows");
-        if (Directory.Exists(windowsPath) && (branchPresets?.depotWindows ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+        if (Directory.Exists(windowsPath) && (branchPresets?.depotWindows ?? DepotNumber.NotSet) != DepotNumber.NotSet && (branchPresets?.enableWindows ?? true))
         {
             string depotVdfPath = Path.Combine(scriptsPath, $"depot_{windowsDepot}_{versionName}.vdf");
             GenerateDepotVDF(depotVdfPath, windowsDepot, windowsPath);
         }
 
         string linuxPath = Path.Combine(versionPath, "Linux");
-        if (Directory.Exists(linuxPath) && (branchPresets?.depotLinux ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+        if (Directory.Exists(linuxPath) && (branchPresets?.depotLinux ?? DepotNumber.NotSet) != DepotNumber.NotSet && (branchPresets?.enableLinux ?? true))
         {
             string depotVdfPath = Path.Combine(scriptsPath, $"depot_{linuxDepot}_{versionName}.vdf");
             GenerateDepotVDF(depotVdfPath, linuxDepot, linuxPath);
         }
 
         string steamDeckPath = Path.Combine(versionPath, "Steam Deck");
-        if (Directory.Exists(steamDeckPath) && (branchPresets?.depotSteamDeck ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+        if (Directory.Exists(steamDeckPath) && (branchPresets?.depotSteamDeck ?? DepotNumber.NotSet) != DepotNumber.NotSet && (branchPresets?.enableSteamDeck ?? true))
         {
             string depotVdfPath = Path.Combine(scriptsPath, $"depot_{steamDeckDepot}_{versionName}.vdf");
             GenerateDepotVDF(depotVdfPath, steamDeckDepot, steamDeckPath);
         }
 
         string macPath = Path.Combine(versionPath, "macOS");
-        if (Directory.Exists(macPath))
-            UnityEngine.Debug.LogWarning("macOS builds found but no depot configured. Skipping macOS upload.");
+        if (Directory.Exists(macPath) && (branchPresets?.depotMacOS ?? DepotNumber.NotSet) != DepotNumber.NotSet && (branchPresets?.enableMacOS ?? true))
+        {
+            string depotVdfPath = Path.Combine(scriptsPath, $"depot_{macOSDepot}_{versionName}.vdf");
+            GenerateDepotVDF(depotVdfPath, macOSDepot, macPath);
+        }
     }
 
     static void GenerateAppBuildVDF(string filePath, string versionPath, string versionName, string outputPath)
@@ -402,22 +540,30 @@ public class SteamDepoter : EditorWindow
         string windowsDepot = GetDepotId(branchPresets?.depotWindows ?? DepotNumber.NotSet);
         string linuxDepot = GetDepotId(branchPresets?.depotLinux ?? DepotNumber.NotSet);
         string steamDeckDepot = GetDepotId(branchPresets?.depotSteamDeck ?? DepotNumber.NotSet);
+        string macOSDepot = GetDepotId(branchPresets?.depotMacOS ?? DepotNumber.NotSet);
 
-        if (Directory.Exists(Path.Combine(versionPath, "Windows")) && (branchPresets?.depotWindows ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+        if (Directory.Exists(Path.Combine(versionPath, "Windows")) && (branchPresets?.depotWindows ?? DepotNumber.NotSet) != DepotNumber.NotSet && (branchPresets?.enableWindows ?? true))
             depots.Add($"\t\t\"{windowsDepot}\"\t\"{GetSteamScriptsPath()}/depot_{windowsDepot}_{versionName}.vdf\"");
 
-        if (Directory.Exists(Path.Combine(versionPath, "Linux")) && (branchPresets?.depotLinux ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+        if (Directory.Exists(Path.Combine(versionPath, "Linux")) && (branchPresets?.depotLinux ?? DepotNumber.NotSet) != DepotNumber.NotSet && (branchPresets?.enableLinux ?? true))
             depots.Add($"\t\t\"{linuxDepot}\"\t\"{GetSteamScriptsPath()}/depot_{linuxDepot}_{versionName}.vdf\"");
 
-        if (Directory.Exists(Path.Combine(versionPath, "Steam Deck")) && (branchPresets?.depotSteamDeck ?? DepotNumber.NotSet) != DepotNumber.NotSet)
+        if (Directory.Exists(Path.Combine(versionPath, "Steam Deck")) && (branchPresets?.depotSteamDeck ?? DepotNumber.NotSet) != DepotNumber.NotSet && (branchPresets?.enableSteamDeck ?? true))
             depots.Add($"\t\t\"{steamDeckDepot}\"\t\"{GetSteamScriptsPath()}/depot_{steamDeckDepot}_{versionName}.vdf\"");
 
+        if (Directory.Exists(Path.Combine(versionPath, "macOS")) && (branchPresets?.depotMacOS ?? DepotNumber.NotSet) != DepotNumber.NotSet && (branchPresets?.enableMacOS ?? true))
+            depots.Add($"\t\t\"{macOSDepot}\"\t\"{GetSteamScriptsPath()}/depot_{macOSDepot}_{versionName}.vdf\"");
+
         string depotsSection = string.Join("\n", depots);
+
+        string description = string.IsNullOrEmpty(config.customDescription)
+            ? PlayerSettings.bundleVersion
+            : $"{PlayerSettings.bundleVersion} {config.customDescription}";
 
         string content = $@"""appbuild""
 {{
 	""appid"" ""{appId}""
-	""desc"" ""{PlayerSettings.bundleVersion}""
+	""desc"" ""{description}""
 	""buildoutput"" ""{outputPath.Replace("\\", "/")}""
 	""contentroot"" """"
 	""setlive"" ""{config.steamBranch}""

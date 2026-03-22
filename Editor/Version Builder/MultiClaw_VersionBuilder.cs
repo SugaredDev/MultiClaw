@@ -4,6 +4,7 @@ using UnityEditor.Build.Reporting;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NUnit.Framework;
 
 namespace MultiClaw
 {
@@ -36,12 +37,12 @@ public class VersionBuilder : EditorWindow
 
     readonly PlatformInfo[] platforms = {
         new(false, BuildTarget.StandaloneWindows64, "Windows", ".exe"),
-        new(false, BuildTarget.StandaloneOSX, "macOS", ".app"),
         new(false, BuildTarget.StandaloneLinux64, "Linux", ".x86_64"),
-        new(true, BuildTarget.StandaloneLinux64, "Steam Deck", ".x86_64")
+        new(true, BuildTarget.StandaloneLinux64, "Steam Deck", ".x86_64"),
+        new(false, BuildTarget.StandaloneOSX, "macOS", ".app")
     };
 
-    [MenuItem("Tools/MultiClaw/Version Builder")]
+    [MenuItem("Tools/MultiClaw/Version Builder", false, 0)]
     static void ShowWindow() => GetWindow<VersionBuilder>("MultiClaw | Version Builder");
 
     void OnEnable()
@@ -76,12 +77,12 @@ public class VersionBuilder : EditorWindow
 
         EditorGUILayout.LabelField("Platforms", EditorStyles.boldLabel);
         buildWindows = ColoredToggle("Windows", buildWindows);
-        buildMac = ColoredToggle("macOS", buildMac);
         buildLinux = ColoredToggle("Linux", buildLinux);
         buildSteamDeck = ColoredToggle("Steam Deck", buildSteamDeck);
+        buildMac = ColoredToggle("macOS", buildMac);
 
         GUILayout.Space(10);
-        bool[] platformStates = { buildWindows, buildMac, buildLinux, buildSteamDeck };
+        bool[] platformStates = { buildWindows, buildLinux, buildSteamDeck, buildMac };
         bool canBuild = platformStates.Any(p => p) && buildVersions.Any(v => v.buildEnabled);
         
         List<string> missingSupport = new List<string>();
@@ -89,11 +90,11 @@ public class VersionBuilder : EditorWindow
         if (buildWindows && !BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64))
             missingSupport.Add("Windows");
         
-        if (buildMac && !BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX))
-            missingSupport.Add("macOS");
-        
         if ((buildLinux || buildSteamDeck) && !BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneLinux64))
             missingSupport.Add(buildLinux && buildSteamDeck ? "Linux/Steam Deck" : buildLinux ? "Linux" : "Steam Deck");
+        
+        if (buildMac && !BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX))
+            missingSupport.Add("macOS");
         
         if (missingSupport.Count > 0)
         {

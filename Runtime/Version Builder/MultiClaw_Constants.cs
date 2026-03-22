@@ -44,9 +44,9 @@ public static class Constants
         return activeVersion;
     }
     
-    public static SteamBranches EnsureSteamBranchPresetsExists()
+    public static Rememberer EnsureSteamBranchPresetsExists()
     {
-        var presets = AssetDatabase.LoadAssetAtPath<SteamBranches>(Path_SteamBranchPresets);
+        var presets = AssetDatabase.LoadAssetAtPath<Rememberer>(Path_SteamBranchPresets);
         
         if (presets == null)
         {
@@ -54,7 +54,7 @@ public static class Constants
             if (!Directory.Exists(resourcesPath))
                 Directory.CreateDirectory(resourcesPath);
             
-            presets = ScriptableObject.CreateInstance<SteamBranches>();
+            presets = ScriptableObject.CreateInstance<Rememberer>();
             presets.name = "Steam Branch Presets";
             
             AssetDatabase.CreateAsset(presets, Path_SteamBranchPresets);
