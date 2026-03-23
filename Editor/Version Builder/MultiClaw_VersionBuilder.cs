@@ -208,7 +208,7 @@ public class VersionBuilder : EditorWindow
 
         string buildsRoot = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Builds");
         string originalJson = JsonUtility.ToJson(inEditorVersion);
-        bool[] platformStates = { buildWindows, buildMac, buildLinux, buildSteamDeck };
+        bool[] platformStates = { buildWindows, buildLinux, buildSteamDeck, buildMac };
 
         try
         {
