@@ -4,9 +4,9 @@ using MultiClaw.Core;
 namespace MultiClaw
 {
     
-
     public static class Version
     {
+        
         // MultiClaw
         public static bool IsType(params MultiClaw.VersionType[] types)
         {
@@ -27,19 +27,6 @@ namespace MultiClaw
                 if (active.IsVersionType(type))
                     return true;
             return false;
-        }
-
-        public static MultiClaw.Core.VersionIndicator Indicator => GetIndicator();
-        public static MultiClaw.Core.CommandConsole Console => GetConsole();
-
-        static MultiClaw.Core.VersionIndicator GetIndicator()
-        {
-            return UnityEngine.Object.FindFirstObjectByType<MultiClaw.Core.VersionIndicator>();
-        }
-
-        static MultiClaw.Core.CommandConsole GetConsole()
-        {
-            return UnityEngine.Object.FindFirstObjectByType<MultiClaw.Core.CommandConsole>();
         }
 
     }
