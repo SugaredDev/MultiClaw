@@ -10,7 +10,7 @@ using System.Linq;
 // To mark a function as a command, add '[Command]' attribute to it, make it's input 'string[]'.
 // You can also specify command name like '[Command("otherthatfunctionname")]'.
 
-namespace MultiClaw
+namespace MultiClaw.Core
 {
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]

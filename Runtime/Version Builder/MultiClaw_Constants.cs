@@ -4,12 +4,11 @@ using UnityEditor;
 using System.IO;
 #endif
 
-namespace MultiClaw
+namespace MultiClaw.Core
 {
 
 public static class Constants
 {
-    
     public const string Path_Versions = "Assets/Plugins/MultiClaw/Resources/Game Versions";
     public const string Resources_Active = "Game Versions/Active Version";
     public const string Path_Active = "Assets/Plugins/MultiClaw/Resources/Game Versions/Active Version.asset";
@@ -17,6 +16,8 @@ public static class Constants
     public const string Path_Indicator = "Assets/Plugins/MultiClaw/Resources/Version Indication Font";
     public const string Path_SteamBranchPresets = "Assets/Plugins/MultiClaw/Resources/Steam Branch Presets.asset";
     public const string Resources_SteamBranchPresets = "Steam Branch Presets";
+
+    public static GameVersion GetActiveVersion() => Resources.Load<GameVersion>(Resources_Active);
 
 #if UNITY_EDITOR
     public static GameVersion EnsureActiveVersionExists()

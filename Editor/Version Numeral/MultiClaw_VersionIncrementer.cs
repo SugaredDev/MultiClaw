@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace MultiClaw
+namespace MultiClaw.Core
 {
 
 [InitializeOnLoad]

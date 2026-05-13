@@ -4,9 +4,8 @@ using UnityEditor.Build.Reporting;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NUnit.Framework;
 
-namespace MultiClaw
+namespace MultiClaw.Core
 {
 
 public class VersionBuilder : EditorWindow
@@ -184,6 +183,11 @@ public class VersionBuilder : EditorWindow
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Steam API:", GUILayout.Width(140));
             version.configAsset.steamAPI = (uint)EditorGUILayout.IntField((int)version.configAsset.steamAPI);
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Version Type:", GUILayout.Width(140));
+            version.configAsset.versionType = (VersionType)EditorGUILayout.EnumPopup(version.configAsset.versionType);
             EditorGUILayout.EndHorizontal();
             
             if (EditorGUI.EndChangeCheck())

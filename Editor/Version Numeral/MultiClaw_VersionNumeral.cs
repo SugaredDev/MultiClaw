@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 
-namespace MultiClaw
+namespace MultiClaw.Core
 {
 
 public class VersionNumeral : EditorWindow

@@ -4,7 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 using System.IO;
 
-namespace MultiClaw
+namespace MultiClaw.Core
 {
 
 public class Scenes : EditorWindow

@@ -5,7 +5,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MultiClaw
+namespace MultiClaw.Core
 {
 
 public class SteamDepoter : EditorWindow

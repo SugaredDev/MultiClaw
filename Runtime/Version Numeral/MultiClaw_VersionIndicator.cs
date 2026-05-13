@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MultiClaw
+namespace MultiClaw.Core
 {
 
 public class VersionIndicator : MonoBehaviour
