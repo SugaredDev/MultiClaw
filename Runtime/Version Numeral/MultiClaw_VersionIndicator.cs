@@ -8,6 +8,13 @@ public class VersionIndicator : MonoBehaviour
 
     public static GameVersion version { get; private set; }
     static bool showGUI = true;
+    static Color versionColor = new Color(1f, 1f, 1f, 0.1f);
+
+    public static Color VersionColor
+    {
+        get => versionColor;
+        set => versionColor = value;
+    }
     
     public static event System.Action<GameVersion> OnVersionLoaded;
     public static bool versionLoaded = false; // To check on runtime if the version is loaded, for custom stuff if you want.
@@ -47,10 +54,8 @@ public class VersionIndicator : MonoBehaviour
 
         versionStyle = new GUIStyle
         {
-            normal = { textColor = new Color(1f, 1f, 1f, 0.1f) },
             alignment = TextAnchor.MiddleCenter,
         };
-        
         if (customFont != null)
             versionStyle.font = customFont;
     }
@@ -61,6 +66,7 @@ public class VersionIndicator : MonoBehaviour
             return;
 
         versionStyle.fontSize = Mathf.Max(5, Screen.height / 50);
+        versionStyle.normal.textColor = versionColor;
 
         string versionText = $"{version.title}.{Application.version}";
 

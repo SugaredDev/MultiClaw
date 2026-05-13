@@ -7,8 +7,8 @@ namespace MultiClaw.Core
 
 public class VersionNumeral : EditorWindow
 {
-
     Font chosenFont;
+    Color versionColor = new Color(1f, 1f, 1f, 0.1f);
 
     [MenuItem("Tools/MultiClaw/Version Numeral", false, 12)]
     static void ShowWindow()
@@ -16,64 +16,75 @@ public class VersionNumeral : EditorWindow
         GetWindow<VersionNumeral>("MultiClaw | Version Numeral");
     }
 
+
     void OnEnable()
     {
         LoadCurrentFont();
+        versionColor = VersionIndicator.VersionColor;
     }
 
     void OnGUI()
     {
-        EditorGUILayout.LabelField("Version Indicator Font", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Version Indicator Font & Color", EditorStyles.boldLabel);
         EditorGUILayout.Space();
 
         Font resourceFont = Resources.Load<Font>(Constants.Resources_Indicator);
 
         EditorGUILayout.BeginVertical("box");
-        
+
         EditorGUILayout.LabelField($"Current Version: {PlayerSettings.bundleVersion}", EditorStyles.boldLabel);
         EditorGUILayout.Space();
-        
+
         EditorGUILayout.BeginHorizontal();
-        
+
         GUI.backgroundColor = Color.cyan;
         if (GUILayout.Button("Major Update", GUILayout.Height(30)))
             IncrementMajor();
-        
+
         GUI.backgroundColor = Color.yellow;
         if (GUILayout.Button("Minor Update", GUILayout.Height(30)))
             IncrementMinor();
-        
+
         GUI.backgroundColor = Color.green;
         if (GUILayout.Button("Debug Update", GUILayout.Height(30)))
             IncrementDebug();
-        
+
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndHorizontal();
-        
+
         EditorGUILayout.Space(5);
         EditorGUILayout.LabelField("Major (0.X.0.000)", EditorStyles.miniLabel);
         EditorGUILayout.LabelField("Minor (0.0.X.000)", EditorStyles.miniLabel);
         EditorGUILayout.LabelField("Debug (0.0.0.XXX)", EditorStyles.miniLabel);
-        
+
         EditorGUILayout.EndVertical();
-        
+
         EditorGUILayout.Space();
 
+        // Color picker for version indicator
         EditorGUILayout.BeginVertical("box");
-        
+        EditorGUILayout.LabelField("Change Version Indicator Color:", EditorStyles.label);
+        Color newColor = EditorGUILayout.ColorField(versionColor);
+        versionColor = newColor;
+        EditorGUILayout.Space();
+        GUI.backgroundColor = Color.cyan;
+        if (GUILayout.Button("Update Indicator Color"))
+        {
+            MultiClaw.Core.VersionIndicator.VersionColor = versionColor;
+        }
+        GUI.backgroundColor = Color.white;
+        EditorGUILayout.EndVertical();
+
+        EditorGUILayout.BeginVertical("box");
         EditorGUILayout.LabelField("Change Font for Version Indication:", EditorStyles.label);
         chosenFont = (Font)EditorGUILayout.ObjectField(chosenFont, typeof(Font), false);
-        
         EditorGUILayout.Space();
-        
         GUI.enabled = chosenFont != null;
         GUI.backgroundColor = resourceFont != null ? Color.green : Color.red;
-        
         if (GUILayout.Button("Update Indicator Font"))
             UpdateFont();
         GUI.backgroundColor = Color.white;
         GUI.enabled = true;
-        
         if (IsFontSetCorrectly())
         {
             EditorGUILayout.Space(5);
@@ -81,7 +92,6 @@ public class VersionNumeral : EditorWindow
             EditorGUILayout.LabelField("✓ Font is set correctly", EditorStyles.miniLabel);
             GUI.color = Color.white;
         }
-        
         EditorGUILayout.EndVertical();
         
         if (resourceFont == null)
