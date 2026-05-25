@@ -5,7 +5,7 @@ using System.IO;
 namespace MultiClaw.Core
 {
 
-public class VersionNumeral : EditorWindow
+public class BranchNumeral : EditorWindow
 {
 
     Font chosenFont;
@@ -13,7 +13,7 @@ public class VersionNumeral : EditorWindow
     [MenuItem("Tools/MultiClaw/Version Numeral", false, 12)]
     static void ShowWindow()
     {
-        GetWindow<VersionNumeral>("MultiClaw | Version Numeral");
+        GetWindow<BranchNumeral>("MultiClaw | Version Numeral");
     }
 
     void OnEnable()
@@ -87,7 +87,7 @@ public class VersionNumeral : EditorWindow
         if (resourceFont == null)
         {
             EditorGUILayout.Space();
-            EditorGUILayout.HelpBox("No Indicator font is currently set. The version indicator will use the default Unity font.", MessageType.Warning);
+            EditorGUILayout.HelpBox("No Indicator font is currently set. The branch indicator will use the default Unity font.", MessageType.Warning);
         }
     }
 
@@ -145,12 +145,12 @@ public class VersionNumeral : EditorWindow
 
     void IncrementMajor()
     {
-        string version = PlayerSettings.bundleVersion;
-        string[] parts = version.Split('.');
+        string branch = PlayerSettings.bundleVersion;
+        string[] parts = branch.Split('.');
 
         if (parts.Length != 4)
         {
-            Debug.LogWarning("Build version is not in the correct format. Resetting to '0.1.0.000'.");
+            Debug.LogWarning("Build branch is not in the correct format. Resetting to '0.1.0.000'.");
             PlayerSettings.bundleVersion = "0.1.0.000";
             return;
         }
@@ -160,20 +160,20 @@ public class VersionNumeral : EditorWindow
 
         major++;
 
-        string newVersion = $"{parts[0]}.{major}.0.000";
-        PlayerSettings.bundleVersion = newVersion;
+        string newBranch = $"{parts[0]}.{major}.0.000";
+        PlayerSettings.bundleVersion = newBranch;
 
-        Debug.Log($"Project Version updated to {newVersion} (Major Update)");
+        Debug.Log($"Project Version updated to {newBranch} (Major Update)");
     }
 
     void IncrementMinor()
     {
-        string version = PlayerSettings.bundleVersion;
-        string[] parts = version.Split('.');
+        string branch = PlayerSettings.bundleVersion;
+        string[] parts = branch.Split('.');
 
         if (parts.Length != 4)
         {
-            Debug.LogWarning("Build version is not in the correct format. Resetting to '0.0.1.000'.");
+            Debug.LogWarning("Build branch is not in the correct format. Resetting to '0.0.1.000'.");
             PlayerSettings.bundleVersion = "0.0.1.000";
             return;
         }
@@ -185,20 +185,20 @@ public class VersionNumeral : EditorWindow
 
         minor++;
 
-        string newVersion = $"{parts[0]}.{major}.{minor}.000";
-        PlayerSettings.bundleVersion = newVersion;
+        string newBranch = $"{parts[0]}.{major}.{minor}.000";
+        PlayerSettings.bundleVersion = newBranch;
 
-        Debug.Log($"Project Version updated to {newVersion} (Minor Update)");
+        Debug.Log($"Project Version updated to {newBranch} (Minor Update)");
     }
 
     void IncrementDebug()
     {
-        string version = PlayerSettings.bundleVersion;
-        string[] parts = version.Split('.');
+        string branch = PlayerSettings.bundleVersion;
+        string[] parts = branch.Split('.');
 
         if (parts.Length != 4)
         {
-            Debug.LogWarning("Build version is not in the correct format. Resetting to '0.0.0.001'.");
+            Debug.LogWarning("Build branch is not in the correct format. Resetting to '0.0.0.001'.");
             PlayerSettings.bundleVersion = "0.0.0.001";
             return;
         }
@@ -212,10 +212,10 @@ public class VersionNumeral : EditorWindow
 
         debug++;
 
-        string newVersion = $"{parts[0]}.{major}.{minor}.{debug:D3}";
-        PlayerSettings.bundleVersion = newVersion;
+        string newBranch = $"{parts[0]}.{major}.{minor}.{debug:D3}";
+        PlayerSettings.bundleVersion = newBranch;
 
-        Debug.Log($"Project Version updated to {newVersion} (Debug Update)");
+        Debug.Log($"Project Version updated to {newBranch} (Debug Update)");
     }
 
 }

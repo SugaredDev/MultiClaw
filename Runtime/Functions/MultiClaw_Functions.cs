@@ -4,27 +4,17 @@ using MultiClaw.Core;
 namespace MultiClaw
 {
     
-    public static class Version
+    public static class Branch
     {
-        
-        // MultiClaw
-        public static bool IsType(params MultiClaw.VersionType[] types)
-        {
-            var active = Constants.GetActiveVersion();
-            if (active == null) return false;
-            foreach (var type in types)
-                if (active.IsVersionType(type.ToCore()))
-                    return true;
-            return false;
-        }
 
-        // MultiClaw.Core
-        public static bool IsType(params MultiClaw.Core.VersionType[] types)
+        public static GameBranch Get() => Constants.GetActiveBranch();
+
+        public static bool Is(params BranchType[] types)
         {
-            var active = Constants.GetActiveVersion();
+            var active = Constants.GetActiveBranch();
             if (active == null) return false;
             foreach (var type in types)
-                if (active.IsVersionType(type))
+                if (active.IsBranchType(type.ToCore()))
                     return true;
             return false;
         }

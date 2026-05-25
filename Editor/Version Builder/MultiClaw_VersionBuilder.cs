@@ -8,11 +8,11 @@ using System.Linq;
 namespace MultiClaw.Core
 {
 
-public class VersionBuilder : EditorWindow
+public class BranchBuilder : EditorWindow
 {
 
     [System.Serializable]
-    public class BuildConfig { public GameVersion configAsset; public bool buildEnabled; }
+    public class BuildConfig { public GameBranch configAsset; public bool buildEnabled; }
 
     class PlatformInfo
     {
@@ -29,9 +29,9 @@ public class VersionBuilder : EditorWindow
         }
     }
 
-    List<BuildConfig> buildVersions = new();
+    List<BuildConfig> buildBranches = new();
     Vector2 scroll;
-    GameVersion inEditorVersion;
+    GameBranch inEditorBranch;
     bool buildWindows, buildMac, buildLinux, buildSteamDeck;
 
     readonly PlatformInfo[] platforms = {
@@ -42,20 +42,20 @@ public class VersionBuilder : EditorWindow
     };
 
     [MenuItem("Tools/MultiClaw/Version Builder", false, 0)]
-    static void ShowWindow() => GetWindow<VersionBuilder>("MultiClaw | Version Builder");
+    static void ShowWindow() => GetWindow<BranchBuilder>("MultiClaw | Version Builder");
 
     void OnEnable()
     {
-        inEditorVersion = Constants.EnsureActiveVersionExists();
-        RefreshVersionsList();
-        EnsureActiveVersionMatchesAvailable();
+        inEditorBranch = Constants.EnsureActiveBranchExists();
+        RefreshBranchesList();
+        EnsureActiveBranchMatchesAvailable();
     }
 
     void OnGUI()
     {
         GUI.backgroundColor = Color.gray;
         if (GUILayout.Button(PlayerSettings.bundleVersion, new GUIStyle(GUI.skin.button) { alignment = TextAnchor.MiddleCenter, fontSize = 14, fontStyle = FontStyle.Bold }))
-            EditorWindow.GetWindow<VersionNumeral>("Version Numeral");
+            EditorWindow.GetWindow<BranchNumeral>("Version Numeral");
         GUI.backgroundColor = Color.white;
         GUILayout.Space(5);
         
@@ -63,12 +63,12 @@ public class VersionBuilder : EditorWindow
         EditorGUILayout.LabelField("Build Versions", EditorStyles.boldLabel);
         GUI.backgroundColor = Color.green;
         if (GUILayout.Button("+ New Version", GUILayout.Width(100)))
-            CreateNewVersion();
+            CreateNewBranch();
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndHorizontal();
 
         scroll = EditorGUILayout.BeginScrollView(scroll);
-        for (int i = 0; i < buildVersions.Count; i++) VersionEntry(i);
+        for (int i = 0; i < buildBranches.Count; i++) BranchEntry(i);
         EditorGUILayout.EndScrollView();
 
         GUILayout.Space(10);
@@ -82,7 +82,7 @@ public class VersionBuilder : EditorWindow
 
         GUILayout.Space(10);
         bool[] platformStates = { buildWindows, buildLinux, buildSteamDeck, buildMac };
-        bool canBuild = platformStates.Any(p => p) && buildVersions.Any(v => v.buildEnabled);
+        bool canBuild = platformStates.Any(p => p) && buildBranches.Any(v => v.buildEnabled);
         
         List<string> missingSupport = new List<string>();
         
@@ -117,30 +117,30 @@ public class VersionBuilder : EditorWindow
         return result;
     }
 
-    void VersionEntry(int build)
+    void BranchEntry(int build)
     {
-        var version = buildVersions[build];
+        var branch = buildBranches[build];
         EditorGUILayout.BeginVertical("box");
         EditorGUILayout.BeginHorizontal();
 
-        bool isActive = inEditorVersion != null && JsonUtility.ToJson(version.configAsset) == JsonUtility.ToJson(inEditorVersion);
-        bool isActiveAsset = AssetDatabase.GetAssetPath(version.configAsset) == Constants.Path_Active;
+        bool isActive = inEditorBranch != null && JsonUtility.ToJson(branch.configAsset) == JsonUtility.ToJson(inEditorBranch);
+        bool isActiveAsset = AssetDatabase.GetAssetPath(branch.configAsset) == Constants.Path_Active;
         
         GUI.backgroundColor = isActive ? Color.yellow : Color.white;
-        GUI.enabled = !isActiveAsset && version.configAsset != null;
+        GUI.enabled = !isActiveAsset && branch.configAsset != null;
 
         if (GUILayout.Button(isActive ? "Active In-Editor" : "Set Active", GUILayout.Width(110)))
         {
-            EditorUtility.CopySerialized(version.configAsset, inEditorVersion);
-            EditorUtility.SetDirty(inEditorVersion);
-            inEditorVersion.name = "Active Version";
+            EditorUtility.CopySerialized(branch.configAsset, inEditorBranch);
+            EditorUtility.SetDirty(inEditorBranch);
+            inEditorBranch.name = "Active Version";
         }
 
         GUI.enabled = true;
-        GUI.backgroundColor = version.buildEnabled ? Color.green : Color.red;
+        GUI.backgroundColor = branch.buildEnabled ? Color.green : Color.red;
 
-        if (GUILayout.Button(version.buildEnabled ? "Enabled for build" : "Disabled for build", GUILayout.Width(110)))
-            version.buildEnabled = !version.buildEnabled;
+        if (GUILayout.Button(branch.buildEnabled ? "Enabled for build" : "Disabled for build", GUILayout.Width(110)))
+            branch.buildEnabled = !branch.buildEnabled;
 
         GUI.backgroundColor = Color.white;
         GUILayout.FlexibleSpace();
@@ -149,10 +149,10 @@ public class VersionBuilder : EditorWindow
         GUI.backgroundColor = Color.red;
         if (GUILayout.Button("X", GUILayout.Width(25)))
         {
-            if (EditorUtility.DisplayDialog("Delete Version", $"Are you sure you want to delete '{version.configAsset.title}'?", "Delete", "Cancel"))
+            if (EditorUtility.DisplayDialog("Delete Version", $"Are you sure you want to delete '{branch.configAsset.title}'?", "Delete", "Cancel"))
             {
-                var versionToDelete = version.configAsset;
-                EditorApplication.delayCall += () => DeleteVersion(versionToDelete);
+                var branchToDelete = branch.configAsset;
+                EditorApplication.delayCall += () => DeleteBranch(branchToDelete);
             }
         }
 
@@ -160,39 +160,39 @@ public class VersionBuilder : EditorWindow
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndHorizontal();
 
-        if (version.configAsset != null)
+        if (branch.configAsset != null)
         {
             GUI.enabled = !isActiveAsset;
             EditorGUI.BeginChangeCheck();
             
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Title:", GUILayout.Width(140));
-            version.configAsset.title = EditorGUILayout.TextField(version.configAsset.title);
+            branch.configAsset.title = EditorGUILayout.TextField(branch.configAsset.title);
             EditorGUILayout.EndHorizontal();
             
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Executable File Name:", GUILayout.Width(140));
-            version.configAsset.fileName = EditorGUILayout.TextField(version.configAsset.fileName);
+            branch.configAsset.fileName = EditorGUILayout.TextField(branch.configAsset.fileName);
             EditorGUILayout.EndHorizontal();
             
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Debug:", GUILayout.Width(140));
-            version.configAsset.debug = EditorGUILayout.Toggle(version.configAsset.debug);
+            branch.configAsset.debug = EditorGUILayout.Toggle(branch.configAsset.debug);
             EditorGUILayout.EndHorizontal();
             
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Steam API:", GUILayout.Width(140));
-            version.configAsset.steamAPI = (uint)EditorGUILayout.IntField((int)version.configAsset.steamAPI);
+            branch.configAsset.steamAPI = (uint)EditorGUILayout.IntField((int)branch.configAsset.steamAPI);
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Version Type:", GUILayout.Width(140));
-            version.configAsset.versionType = (VersionType)EditorGUILayout.EnumPopup(version.configAsset.versionType);
+            branch.configAsset.branchType = (BranchType)EditorGUILayout.EnumPopup(branch.configAsset.branchType);
             EditorGUILayout.EndHorizontal();
             
             if (EditorGUI.EndChangeCheck())
             {
-                EditorUtility.SetDirty(version.configAsset);
+                EditorUtility.SetDirty(branch.configAsset);
                 AssetDatabase.SaveAssets();
             }
             
@@ -211,34 +211,34 @@ public class VersionBuilder : EditorWindow
         }
 
         string buildsRoot = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Builds");
-        string originalJson = JsonUtility.ToJson(inEditorVersion);
+        string originalJson = JsonUtility.ToJson(inEditorBranch);
         bool[] platformStates = { buildWindows, buildLinux, buildSteamDeck, buildMac };
 
         try
         {
-            foreach (var version in buildVersions.Where(v => v.buildEnabled && v.configAsset != null))
+            foreach (var branch in buildBranches.Where(v => v.buildEnabled && v.configAsset != null))
             {
                 for (int i = 0; i < platforms.Length; i++)
                 {
                     if (!platformStates[i]) continue;
 
-                    EditorUtility.CopySerialized(version.configAsset, inEditorVersion);
-                    inEditorVersion.steamDeck = platforms[i].isSteamDeck;
-                    inEditorVersion.name = "Active Version";
-                    EditorUtility.SetDirty(inEditorVersion);
+                    EditorUtility.CopySerialized(branch.configAsset, inEditorBranch);
+                    inEditorBranch.steamDeck = platforms[i].isSteamDeck;
+                    inEditorBranch.name = "Active Version";
+                    EditorUtility.SetDirty(inEditorBranch);
                     
                     AssetDatabase.SaveAssets();
 
-                    BuildPlatform(version, platforms[i], buildsRoot, scenes);
+                    BuildPlatform(branch, platforms[i], buildsRoot, scenes);
                 }
             }
         }
         finally
         {
-            JsonUtility.FromJsonOverwrite(originalJson, inEditorVersion);
-            inEditorVersion.steamDeck = false;
-            inEditorVersion.name = "Active Version";
-            EditorUtility.SetDirty(inEditorVersion);
+            JsonUtility.FromJsonOverwrite(originalJson, inEditorBranch);
+            inEditorBranch.steamDeck = false;
+            inEditorBranch.name = "Active Version";
+            EditorUtility.SetDirty(inEditorBranch);
             AssetDatabase.SaveAssets();
         }
         
@@ -256,11 +256,11 @@ public class VersionBuilder : EditorWindow
             EditorWindow.GetWindow<SteamDepoter>("Steam Depoter");
     }
 
-    void BuildPlatform(BuildConfig version, PlatformInfo platform, string root, string[] scenes)
+    void BuildPlatform(BuildConfig branch, PlatformInfo platform, string root, string[] scenes)
     {
-        string folder = Path.Combine(root, version.configAsset.title, platform.folder);
+        string folder = Path.Combine(root, branch.configAsset.title, platform.folder);
         Directory.CreateDirectory(folder);
-        string path = Path.Combine(folder, version.configAsset.fileName + platform.extension);
+        string path = Path.Combine(folder, branch.configAsset.fileName + platform.extension);
 
         var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
         {
@@ -286,88 +286,88 @@ public class VersionBuilder : EditorWindow
         }
     }
 
-    void RefreshVersionsList()
+    void RefreshBranchesList()
     {
-        buildVersions.Clear();
+        buildBranches.Clear();
         buildWindows = buildMac = buildLinux = buildSteamDeck = false;
         
-        if (!Directory.Exists(Constants.Path_Versions)) Directory.CreateDirectory(Constants.Path_Versions);
+        if (!Directory.Exists(Constants.Path_Branches)) Directory.CreateDirectory(Constants.Path_Branches);
 
-        var allVersions = AssetDatabase.FindAssets("t:GameVersion", new[] { Constants.Path_Versions })
+        var allBranches = AssetDatabase.FindAssets("t:GameBranch", new[] { Constants.Path_Branches })
             .Select(AssetDatabase.GUIDToAssetPath)
-            .Select(path => AssetDatabase.LoadAssetAtPath<GameVersion>(path))
+            .Select(path => AssetDatabase.LoadAssetAtPath<GameBranch>(path))
             .Where(asset => asset != null)
             .Select(asset => new BuildConfig { configAsset = asset })
             .ToList();
         
-        var otherVersions = allVersions.Where(v => AssetDatabase.GetAssetPath(v.configAsset) != Constants.Path_Active).ToList();
+        var otherBranches = allBranches.Where(v => AssetDatabase.GetAssetPath(v.configAsset) != Constants.Path_Active).ToList();
         
-        if (otherVersions.Count > 0)
-            buildVersions = otherVersions;
+        if (otherBranches.Count > 0)
+            buildBranches = otherBranches;
         else
-            buildVersions = allVersions;
+            buildBranches = allBranches;
         
-        EnsureActiveVersionMatchesAvailable();
+        EnsureActiveBranchMatchesAvailable();
     }
 
-    void CreateNewVersion()
+    void CreateNewBranch()
     {
-        if (!Directory.Exists(Constants.Path_Versions)) Directory.CreateDirectory(Constants.Path_Versions);
+        if (!Directory.Exists(Constants.Path_Branches)) Directory.CreateDirectory(Constants.Path_Branches);
         
-        int versionNumber = 1;
+        int branchNumber = 1;
         string assetPath;
         
         do
         {
-            assetPath = Path.Combine(Constants.Path_Versions, $"Build Version {versionNumber}.asset");
-            versionNumber++;
-        } while (AssetDatabase.LoadAssetAtPath<GameVersion>(assetPath) != null);
+            assetPath = Path.Combine(Constants.Path_Branches, $"Build Version {branchNumber}.asset");
+            branchNumber++;
+        } while (AssetDatabase.LoadAssetAtPath<GameBranch>(assetPath) != null);
         
-        var newVersion = CreateInstance<GameVersion>();
+        var newBranch = CreateInstance<GameBranch>();
         
-        AssetDatabase.CreateAsset(newVersion, assetPath);
+        AssetDatabase.CreateAsset(newBranch, assetPath);
         AssetDatabase.SaveAssets();
         
         EditorApplication.delayCall += () =>
         {
-            RefreshVersionsList();
-            EditorGUIUtility.PingObject(newVersion);
+            RefreshBranchesList();
+            EditorGUIUtility.PingObject(newBranch);
         };
     }
 
-    void DeleteVersion(GameVersion versionToDelete)
+    void DeleteBranch(GameBranch branchToDelete)
     {
-        if (versionToDelete == null) return;
+        if (branchToDelete == null) return;
         
-        string assetPath = AssetDatabase.GetAssetPath(versionToDelete);
+        string assetPath = AssetDatabase.GetAssetPath(branchToDelete);
         AssetDatabase.DeleteAsset(assetPath);
         AssetDatabase.SaveAssets();
         
-        RefreshVersionsList();
+        RefreshBranchesList();
     }
 
-    void EnsureActiveVersionMatchesAvailable()
+    void EnsureActiveBranchMatchesAvailable()
     {
-        if (inEditorVersion == null)
-            inEditorVersion = Constants.EnsureActiveVersionExists();
+        if (inEditorBranch == null)
+            inEditorBranch = Constants.EnsureActiveBranchExists();
         
-        if (buildVersions.Count == 0) return;
+        if (buildBranches.Count == 0) return;
         
         bool foundMatch = false;
-        foreach (var version in buildVersions)
+        foreach (var branch in buildBranches)
         {
-            if (version.configAsset != null && JsonUtility.ToJson(version.configAsset) == JsonUtility.ToJson(inEditorVersion))
+            if (branch.configAsset != null && JsonUtility.ToJson(branch.configAsset) == JsonUtility.ToJson(inEditorBranch))
             {
                 foundMatch = true;
                 break;
             }
         }
         
-        if (!foundMatch && buildVersions.Count > 0 && buildVersions[0].configAsset != null && inEditorVersion != null)
+        if (!foundMatch && buildBranches.Count > 0 && buildBranches[0].configAsset != null && inEditorBranch != null)
         {
-            EditorUtility.CopySerialized(buildVersions[0].configAsset, inEditorVersion);
-            EditorUtility.SetDirty(inEditorVersion);
-            inEditorVersion.name = "Active Version";
+            EditorUtility.CopySerialized(buildBranches[0].configAsset, inEditorBranch);
+            EditorUtility.SetDirty(inEditorBranch);
+            inEditorBranch.name = "Active Version";
             AssetDatabase.SaveAssets();
         }
     }

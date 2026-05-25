@@ -9,7 +9,7 @@ namespace MultiClaw.Core
 
 public static class Constants
 {
-    public const string Path_Versions = "Assets/Plugins/MultiClaw/Resources/Game Versions";
+    public const string Path_Branches = "Assets/Plugins/MultiClaw/Resources/Game Versions";
     public const string Resources_Active = "Game Versions/Active Version";
     public const string Path_Active = "Assets/Plugins/MultiClaw/Resources/Game Versions/Active Version.asset";
     public const string Resources_Indicator = "Version Indication Font/Indicator";
@@ -17,32 +17,32 @@ public static class Constants
     public const string Path_SteamBranchPresets = "Assets/Plugins/MultiClaw/Resources/Steam Branch Presets.asset";
     public const string Resources_SteamBranchPresets = "Steam Branch Presets";
 
-    public static GameVersion GetActiveVersion() => Resources.Load<GameVersion>(Resources_Active);
+    public static GameBranch GetActiveBranch() => Resources.Load<GameBranch>(Resources_Active);
 
 #if UNITY_EDITOR
-    public static GameVersion EnsureActiveVersionExists()
+    public static GameBranch EnsureActiveBranchExists()
     {
-        var activeVersion = AssetDatabase.LoadAssetAtPath<GameVersion>(Path_Active);
+        var activeBranch = AssetDatabase.LoadAssetAtPath<GameBranch>(Path_Active);
         
-        if (activeVersion == null)
+        if (activeBranch == null)
         {
             Debug.LogWarning("Active Version.asset not found in Resources folder. Creating a new one.");
             
-            if (!Directory.Exists(Path_Versions))
-                Directory.CreateDirectory(Path_Versions);
+            if (!Directory.Exists(Path_Branches))
+                Directory.CreateDirectory(Path_Branches);
             
-            activeVersion = ScriptableObject.CreateInstance<GameVersion>();
-            activeVersion.name = "Active Version";
-            activeVersion.title = "Dev";
-            activeVersion.fileName = "Development";
+            activeBranch = ScriptableObject.CreateInstance<GameBranch>();
+            activeBranch.name = "Active Version";
+            activeBranch.title = "Dev";
+            activeBranch.fileName = "Development";
             
-            AssetDatabase.CreateAsset(activeVersion, Path_Active);
+            AssetDatabase.CreateAsset(activeBranch, Path_Active);
             AssetDatabase.SaveAssets();
             
             Debug.Log("Active Version.asset created successfully.");
         }
         
-        return activeVersion;
+        return activeBranch;
     }
     
     public static Rememberer EnsureSteamBranchPresetsExists()
@@ -68,9 +68,9 @@ public static class Constants
     }
 #endif
 
-    public static bool IsDebugVersion(GameVersion version)
+    public static bool IsDebugBranch(GameBranch branch)
     {
-        return version != null && version.debug;
+        return branch != null && branch.debug;
     }
 
 }

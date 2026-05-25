@@ -1,6 +1,6 @@
 {
   "name": "multiclaw",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "displayName": "MultiClaw",
   "description": "Unity Toolkit for Build Version forking and QA Debug instrumentation.",
   "author": {

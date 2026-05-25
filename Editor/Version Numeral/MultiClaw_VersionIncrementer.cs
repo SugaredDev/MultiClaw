@@ -5,10 +5,10 @@ namespace MultiClaw.Core
 {
 
 [InitializeOnLoad]
-public class VersionIncrementer
+public class BranchIncrementer
 {
     
-    static VersionIncrementer()
+    static BranchIncrementer()
     {
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
     }
@@ -17,19 +17,19 @@ public class VersionIncrementer
     {
         if (state == PlayModeStateChange.ExitingEditMode)
         {
-            Constants.EnsureActiveVersionExists();
+            Constants.EnsureActiveBranchExists();
             IncrementRevision();
         }
     }
 
     static void IncrementRevision()
     {
-        string version = PlayerSettings.bundleVersion;
-        string[] parts = version.Split('.');
+        string branch = PlayerSettings.bundleVersion;
+        string[] parts = branch.Split('.');
 
         if (parts.Length != 4)
         {
-            Debug.LogWarning("Build version is not in the correct format. => Correcting to '0.0.0.000'.");
+            Debug.LogWarning("Build branch is not in the correct format. => Correcting to '0.0.0.000'.");
             parts = new string[] { "0", "0", "0", "000" };
         }
 
@@ -38,11 +38,11 @@ public class VersionIncrementer
 
         revision++;
 
-        string newVersion = $"{parts[0]}.{parts[1]}.{parts[2]}.{revision:D3}";
+        string newBranch = $"{parts[0]}.{parts[1]}.{parts[2]}.{revision:D3}";
 
-        PlayerSettings.bundleVersion = newVersion;
+        PlayerSettings.bundleVersion = newBranch;
 
-        Debug.Log($"Project Version updated to {newVersion}");
+        Debug.Log($"Project Version updated to {newBranch}");
     }
 
 }

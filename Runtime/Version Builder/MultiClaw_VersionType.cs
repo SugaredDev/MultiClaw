@@ -1,7 +1,7 @@
 namespace MultiClaw.Core
 {
 
-    public enum VersionType
+    public enum BranchType
     {
         Development,
         Playtest,
@@ -15,21 +15,21 @@ namespace MultiClaw.Core
 namespace MultiClaw
 {
 
-    public enum VersionType
+    public enum BranchType
     {
 
-        Development = Core.VersionType.Development,
-        Playtest = Core.VersionType.Playtest,
-        Showcase = Core.VersionType.Showcase,
-        Demo = Core.VersionType.Demo,
-        Release = Core.VersionType.Release
+        Development = Core.BranchType.Development,
+        Playtest = Core.BranchType.Playtest,
+        Showcase = Core.BranchType.Showcase,
+        Demo = Core.BranchType.Demo,
+        Release = Core.BranchType.Release
 
     }
 
-    public static class VersionTypeExtensions
+    public static class BranchTypeExtensions
     {
 
-        public static Core.VersionType ToCore(this VersionType type) =>(Core.VersionType)type;
+        public static Core.BranchType ToCore(this BranchType type) =>(Core.BranchType)type;
 
     }
 

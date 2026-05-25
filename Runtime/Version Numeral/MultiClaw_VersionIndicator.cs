@@ -3,16 +3,16 @@ using UnityEngine;
 namespace MultiClaw.Core
 {
 
-public class VersionIndicator : MonoBehaviour
+public class BranchIndicator : MonoBehaviour
 {
 
-    public static GameVersion version { get; private set; }
+    public static GameBranch branch { get; private set; }
     static bool showGUI = true;
     
-    public static event System.Action<GameVersion> OnVersionLoaded;
-    public static bool versionLoaded = false; // To check on runtime if the version is loaded, for custom stuff if you want.
+    public static event System.Action<GameBranch> OnBranchLoaded;
+    public static bool branchLoaded = false; // To check on runtime if the branch is loaded, for custom stuff if you want.
 
-    public static void ShowVersion() => showGUI = !showGUI;
+    public static void ShowBranch() => showGUI = !showGUI;
     
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Initialize()
@@ -24,20 +24,20 @@ public class VersionIndicator : MonoBehaviour
             DontDestroyOnLoad(cloud);
         }
         
-        var versionObject = new GameObject("VersionSystem");
-        versionObject.transform.SetParent(cloud.transform);
-        versionObject.AddComponent<VersionIndicator>();
+        var branchObject = new GameObject("VersionSystem");
+        branchObject.transform.SetParent(cloud.transform);
+        branchObject.AddComponent<BranchIndicator>();
 
-        version = Resources.Load<GameVersion>(Constants.Resources_Active);
+        branch = Resources.Load<GameBranch>(Constants.Resources_Active);
 
-        if (version == null)
+        if (branch == null)
             Debug.LogError("Game Version => Active Version.asset not found in Resources folder. (Assets/Plugins/MultiClaw/Resources)");
         
-        versionLoaded = true;
-        OnVersionLoaded?.Invoke(version);
+        branchLoaded = true;
+        OnBranchLoaded?.Invoke(branch);
     }
 
-    GUIStyle versionStyle;
+    GUIStyle branchStyle;
     Font customFont;
     void Awake()
     {
@@ -45,32 +45,32 @@ public class VersionIndicator : MonoBehaviour
         if (customFont == null)
             Debug.LogWarning("Version Indication => GUI Font not found in Assets/Plugins/MultiClaw/Resources/GUI. Using default GUI font.");
 
-        versionStyle = new GUIStyle
+        branchStyle = new GUIStyle
         {
             normal = { textColor = new Color(1f, 1f, 1f, 0.1f) },
             alignment = TextAnchor.MiddleCenter,
         };
         
         if (customFont != null)
-            versionStyle.font = customFont;
+            branchStyle.font = customFont;
     }
 
     void OnGUI()
     {
-        if (!showGUI || !Constants.IsDebugVersion(version))
+        if (!showGUI || !Constants.IsDebugBranch(branch))
             return;
 
-        versionStyle.fontSize = Mathf.Max(5, Screen.height / 50);
+        branchStyle.fontSize = Mathf.Max(5, Screen.height / 50);
 
-        string versionText = $"{version.title}.{Application.version}";
+        string branchText = $"{branch.title}.{Application.version}";
 
-        Vector2 textSize = versionStyle.CalcSize(new GUIContent(versionText));
+        Vector2 textSize = branchStyle.CalcSize(new GUIContent(branchText));
         float gap = Screen.height * 0.01f;
 
         float x = (Screen.width - textSize.x) / 2;
         float y = Screen.height - textSize.y - gap;
 
-        GUI.Label(new Rect(x, y, textSize.x, textSize.y), versionText, versionStyle);
+        GUI.Label(new Rect(x, y, textSize.x, textSize.y), branchText, branchStyle);
     }
 
 }

@@ -47,17 +47,17 @@ public class CommandConsole : MonoBehaviour
     {
         SetConsole();
         
-        VersionIndicator.OnVersionLoaded += OnVersionLoaded;
+        BranchIndicator.OnBranchLoaded += OnBranchLoaded;
         
-        if (VersionIndicator.version != null)
-            OnVersionLoaded(VersionIndicator.version);
+        if (BranchIndicator.branch != null)
+            OnBranchLoaded(BranchIndicator.branch);
     }
     
-    void OnVersionLoaded(GameVersion version)
+    void OnBranchLoaded(GameBranch branch)
     {
-        VersionIndicator.OnVersionLoaded -= OnVersionLoaded;
+        BranchIndicator.OnBranchLoaded -= OnBranchLoaded;
         
-        if (version == null || !Constants.IsDebugVersion(version))
+        if (branch == null || !Constants.IsDebugBranch(branch))
         {
             Destroy(gameObject);
             return;
@@ -74,7 +74,7 @@ public class CommandConsole : MonoBehaviour
     void OnDisable()
     {
         Application.logMessageReceived -= HandleLog;
-        VersionIndicator.OnVersionLoaded -= OnVersionLoaded;
+        BranchIndicator.OnBranchLoaded -= OnBranchLoaded;
     }
 
     void Update()
